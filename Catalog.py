@@ -1,7 +1,6 @@
-import sqlite3
 from prettytable import PrettyTable
-import csv
-import json
+from abc import ABC, abstractmethod
+from driver import *
 
 
 class Catalog:
@@ -117,51 +116,62 @@ class Catalog:
             """
             print('Что-то пошло не так')
 
-    def to_csv(self, filename: str = None, book: list = None):
-        if len(filename) == 0:
-            filename = 'output.csv'
-        else:
-            if filename[-4:] != '.csv':
-                filename = filename + '.csv'
-        try:
-            if book is None:
-                conn = sqlite3.connect(self.db_name)
-                cursor = conn.cursor()
-                cursor.execute(f"SELECT * FROM books")
-                with open(filename, 'x', newline='') as file:
-                    writer = csv.writer(file, delimiter=';')
-                    writer.writerow([i[0] for i in cursor.description])
-                    for result in cursor:
-                        writer.writerow(result)
-                conn.close()
-                print('CSV-файл успешно сохранен')
-            else:
-                with open(filename, 'x', newline='') as file:
-                    writer = csv.writer(file, delimiter=';')
-                    writer.writerow(book)
-                    print('CSV-файл успешно сохранен')
-        except FileExistsError:
-            print('Файл с таким названием уже существует\n')
 
-    def to_json(self, filename: str = 'output.csv', book: list = None):
-        if len(filename) == 0:
-            filename = 'output.json'
-        else:
-            if filename[-5:] != '.json':
-                filename = filename + '.json'
-        try:
-            if book is None:
-                conn = sqlite3.connect(self.db_name)
-                cursor = conn.cursor()
-                cursor.execute(f"SELECT * FROM books")
-                result = cursor.fetchall()
-                with open(filename, 'x', newline='') as file:
-                    json.dump(result, file)
-                conn.close()
-                print('JSON-файл успешно сохранен')
+
+class DriverBuilder(ABC):
+    @abstractmethod
+    def build(self):
+        pass
+
+
+class JSONBuilder(DriverBuilder):
+    def build(self):
+        while True:
+            filename = input('Введите имя для JSON файла: ')
+            filename = filename.strip()
+            if filename is None:
+                break
+            elif not filename.endswith('.json'):
+                filename += '.json'
+                trampampam = to_json(filename=filename)
+                return trampampam
+
+
+class CSVBuilder(DriverBuilder):
+    def build(self):
+        while True:
+            filename = input('Введите имя для CSV файла: ')
+            filename = filename.strip()
+            if filename is None or filename == '':
+                break
+            elif not filename.endswith('.csv'):
+                filename += '.csv'
+                trampampam = to_csv(filename=filename)
+                return trampampam
+
+
+class FabricDriverBuilder():
+    @staticmethod
+    def get_driver():
+        drivers = {
+            1: JSONBuilder,
+            2: CSVBuilder
+        }
+        for key, item in drivers.items():
+            print(f'{key}:\t{item.__name__}')
+        while True:
+            driver_name = input('Enter Driver number or press [Enter] to quit: ')
+            if driver_name is None or driver_name == '':
+                return
+            elif not driver_name.isdigit():
+                print('Number must be int')
+                continue
             else:
-                with open(filename, 'x', newline='') as file:
-                    json.dump(book, file)
-                    print('JSON-файл успешно сохранен')
-        except FileExistsError:
-            print('Файл с таким названием уже существует\n')
+                driver_name = int(driver_name)
+                break
+        return drivers[driver_name]().build()
+
+if __name__ == '__main__':
+    avm = FabricDriverBuilder()
+    print(avm.get_driver())
+    pass

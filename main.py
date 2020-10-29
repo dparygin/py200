@@ -1,6 +1,7 @@
 import os
 from Config import *
 from Catalog import *
+from driver import *
 
 """
 Каталог книг
@@ -29,6 +30,7 @@ class Interface:
             config.change_settings()
             print('Подключен каталог:', db_name)
             Interface.main_menu(db_name)
+
 
     def create_catalog():
         """
@@ -85,8 +87,7 @@ class Interface:
                       '3 - добавить книгу в каталог',
                       '4 - удалить книгу из каталога',
                       '5 - очистить каталог',
-                      '6 - сохранить библиотеку в CSV формате',
-                      '7 - сохранить библиотеку в JSON формате',
+                      '6 - Экспорт библиотеки',
                       '0 - выход', sep='\n')
                 main_choice = input()
                 try:
@@ -126,18 +127,14 @@ class Interface:
                             val_exit = True
                         else:
                             print('Некорректный ввод')
-                elif main_choice == 9:
-                    filename_input = input('Введите название файла для сохранения в него каталога:\n')
-                    sql.to_csv(filename_input)
-                elif main_choice == 10:
-                    filename_input = input('Введите название файла для сохранения в него каталога:\n')
-                    sql.to_json(filename_input)
+                elif main_choice == 6:
+                    uo = FabricDriverBuilder()
+                    uo.get_driver()
                 elif main_choice == 0:
                     print('Завершение программы')
                     exit()
         except Exception as exc:
             pass
-
 
 if __name__ == "__main__":
     Interface()
